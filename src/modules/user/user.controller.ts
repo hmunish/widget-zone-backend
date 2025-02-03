@@ -22,6 +22,8 @@ import { Roles } from 'src/shared/decorators/role.decorator';
 import { UserRole } from 'src/shared/enums/common.interface';
 import { ObjectId } from 'mongodb';
 import { EditUserWidgetDto } from './dto/edit-user-widget.dto';
+import { AddUserWidgetPropertyDto } from './dto/add-user-widget-property.dto';
+import { DeleteUserWidgetPropertyDto } from './dto/delete-user-widget-property.dto';
 
 @Controller('users')
 export class UserController {
@@ -145,6 +147,60 @@ export class UserController {
           message:
             (error instanceof HttpException ? error.message : null) ||
             'Failed to delete widget. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
+  @Post('widgets/:id/properties')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async addWidgetProperty(
+    @Req() req,
+    @Param('id') id: ObjectId,
+    @Body() body: AddUserWidgetPropertyDto,
+  ) {
+    try {
+      await this.service.addWidgetProperty(id, req.user.id, body.property);
+      return {
+        message: 'Property have successfully been added.',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to add property. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
+  @Delete('widgets/:id/properties')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async deleteWidgetProperty(
+    @Req() req,
+    @Param('id') id: ObjectId,
+    @Body() body: DeleteUserWidgetPropertyDto,
+  ) {
+    try {
+      await this.service.deleteWidgetProperty(id, req.user.id, body.property);
+      return {
+        message: 'Property have successfully been deleted.',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to delete property. Please try again later.',
         },
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );

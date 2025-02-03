@@ -84,4 +84,34 @@ export class UserService {
 
     return await this.userWidgetRepository.delete(widgetId);
   }
+
+  async addWidgetProperty(id: ObjectId, userId: ObjectId, property: string) {
+    const widget = await this.userWidgetRepository.find({ id });
+
+    if (widget?.user.id !== userId) {
+      throw new HttpException(
+        {
+          message: 'You do not have permission to add this data.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return await this.userWidgetRepository.addProperty(id, property);
+  }
+
+  async deleteWidgetProperty(id: ObjectId, userId: ObjectId, property: string) {
+    const widget = await this.userWidgetRepository.find({ id });
+
+    if (widget?.user.id !== userId) {
+      throw new HttpException(
+        {
+          message: 'You do not have permission to delete this data.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return await this.userWidgetRepository.deleteProperty(id, property);
+  }
 }
