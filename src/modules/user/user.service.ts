@@ -37,8 +37,8 @@ export class UserService {
     return await this.userRepository.verifyUser(userId);
   }
 
-  async listWidget(userId: string) {
-    return await this.userWidgetRepository.list(userId);
+  async listWidget(userId: string, type: string) {
+    return await this.userWidgetRepository.list(userId, type);
   }
 
   async createWidget(userWidget: UserWidget) {

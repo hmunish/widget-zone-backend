@@ -10,8 +10,10 @@ export class UserWidgetRepository {
     private db: Db,
   ) {}
 
-  async list(userId: string) {
-    const query: Filter<Document> = { 'user.id': userId };
+  async list(userId: string, type: string) {
+    const query: Filter<Document> = {
+      $and: [{ 'user.id': userId }, { 'widget.type.name': type }],
+    };
     return await this.db.collection(this.collection).find(query).toArray();
   }
 

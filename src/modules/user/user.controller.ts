@@ -78,12 +78,12 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.User)
-  @Get('widgets')
+  @Get('widgets/:type')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
-  async listWidget(@Req() req) {
+  async listWidget(@Req() req, @Param('type') type: string) {
     try {
-      const data = await this.service.listWidget(req.user.id);
+      const data = await this.service.listWidget(req.user.id, type);
       return {
         message: 'Widget list have successfully been fetched.',
         data,
