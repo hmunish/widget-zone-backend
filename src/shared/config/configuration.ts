@@ -25,4 +25,10 @@ export default () => ({
       userVerification: process.env.JWT_USER_VERIFICATION_TOKEN_EXPIRES_IN,
     },
   },
+
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
 });

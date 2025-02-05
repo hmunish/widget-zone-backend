@@ -26,6 +26,10 @@ export interface Newsletter {
 
 export interface Advertisement {
   title: string;
+  image?: {
+    url: string;
+    publicId: string;
+  };
   styles: {
     color: string;
     bgColor: string;

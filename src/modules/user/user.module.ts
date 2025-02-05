@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserRepository } from 'src/shared/repositories/user.repository';
 import { WidgetRepository } from 'src/shared/repositories/widget.repository';
 import { UserWidgetRepository } from 'src/shared/repositories/user-widget.repository';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Module({
   imports: [ConfigModule, DatabaseModule, JwtModule],
@@ -16,6 +17,7 @@ import { UserWidgetRepository } from 'src/shared/repositories/user-widget.reposi
     UserRepository,
     WidgetRepository,
     UserWidgetRepository,
+    CloudinaryService,
   ],
 })
 export class UserModule {}

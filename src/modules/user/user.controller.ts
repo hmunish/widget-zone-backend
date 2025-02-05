@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -10,7 +11,9 @@ import {
   Post,
   Put,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -24,7 +27,10 @@ import { ObjectId } from 'mongodb';
 import { EditUserWidgetDto } from './dto/edit-user-widget.dto';
 import { AddUserWidgetPropertyDto } from './dto/add-user-widget-property.dto';
 import { DeleteUserWidgetPropertyDto } from './dto/delete-user-widget-property.dto';
-
+import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
+import * as multer from 'multer';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { Express } from 'express';
 @Controller('users')
 export class UserController {
   constructor(private service: UserService) {}
@@ -57,11 +63,12 @@ export class UserController {
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
   async createWidget(@Req() req, @Body() body: CreateUserWidgetDto) {
     try {
-      await this.service.createWidget({
+      const widget = await this.service.createWidget({
         user: { id: req.user.id },
         widget: body,
       });
       return {
+        widget,
         message: 'Widget have successfully created.',
       };
     } catch (error) {
@@ -70,6 +77,46 @@ export class UserController {
           message:
             (error instanceof HttpException ? error.message : null) ||
             'Failed to create widget. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
+  @Post('widgets/:id/images')
+  @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype || !/^image\/(jpeg|jpg|png)$/.test(file.mimetype)) {
+          return cb(
+            new BadRequestException('Only JPEG, JPG, and PNG are allowed'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadWidgetFile(
+    @Req() req,
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    try {
+      const url = await this.service.addWidgetImage(id, req.user.id, file);
+      return { url };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to upload widget image. Please try again later.',
         },
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );

@@ -7,6 +7,7 @@ import { UserWidget } from 'src/shared/interfaces/user-widget.interface';
 import { UserWidgetRepository } from 'src/shared/repositories/user-widget.repository';
 import { UserRepository } from 'src/shared/repositories/user.repository';
 import { WidgetRepository } from 'src/shared/repositories/widget.repository';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,7 @@ export class UserService {
     private userRepository: UserRepository,
     private widgetRepository: WidgetRepository,
     private userWidgetRepository: UserWidgetRepository,
+    private cloudinaryService: CloudinaryService,
   ) {}
   verifyJwToken(token: string) {
     try {
@@ -82,7 +84,38 @@ export class UserService {
       );
     }
 
+    if (widget.widget.data.image) {
+      await this.cloudinaryService.deleteImage(
+        widget.widget.data.image.publicId,
+      );
+    }
+
     return await this.userWidgetRepository.delete(widgetId);
+  }
+
+  async addWidgetImage(id: string, userId: string, file: Express.Multer.File) {
+    const result = await this.cloudinaryService.uploadImage(file.buffer);
+
+    const widget = await this.userWidgetRepository.find({
+      id: new ObjectId(id),
+    });
+
+    if (widget?.user.id !== userId) {
+      throw new HttpException(
+        {
+          message: 'You do not have permission to edit this data.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    await this.userWidgetRepository.addImage(
+      id,
+      result.secure_url,
+      result.public_id,
+    );
+
+    return result.secure_url;
   }
 
   async addWidgetProperty(id: ObjectId, userId: ObjectId, property: string) {

@@ -10,6 +10,7 @@ import { UserRepository } from './shared/repositories/user.repository';
 import { DatabaseModule } from './shared/database/database.module';
 import { SigninModule } from './modules/signin/signin.module';
 import { WidgetModule } from './modules/widget/widget.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { WidgetModule } from './modules/widget/widget.module';
     SignupModule,
     SigninModule,
     UserModule,
-    WidgetModule
+    WidgetModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy, UserRepository],
