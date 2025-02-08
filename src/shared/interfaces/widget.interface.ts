@@ -4,4 +4,5 @@ export interface Widget{
     id?: ObjectId
     name: string,
     description: string;
+    code: string;
 }

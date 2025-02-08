@@ -8,10 +8,11 @@ import { UserRepository } from 'src/shared/repositories/user.repository';
 import { WidgetRepository } from 'src/shared/repositories/widget.repository';
 import { UserWidgetRepository } from 'src/shared/repositories/user-widget.repository';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { UserWidgetController } from './user-widget.controller';
 
 @Module({
   imports: [ConfigModule, DatabaseModule, JwtModule],
-  controllers: [UserController],
+  controllers: [UserController, UserWidgetController],
   providers: [
     UserService,
     UserRepository,

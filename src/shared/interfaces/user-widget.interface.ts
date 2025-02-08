@@ -1,5 +1,4 @@
 import { ObjectId } from 'mongodb';
-
 export interface UserWidget {
   id?: ObjectId;
   user: {

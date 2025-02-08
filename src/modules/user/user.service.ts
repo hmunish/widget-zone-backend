@@ -3,11 +3,20 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { console } from 'inspector';
 import { ObjectId } from 'mongodb';
-import { UserWidget } from 'src/shared/interfaces/user-widget.interface';
+import {
+  Advertisement,
+  Newsletter,
+  UserWidget,
+} from 'src/shared/interfaces/user-widget.interface';
 import { UserWidgetRepository } from 'src/shared/repositories/user-widget.repository';
 import { UserRepository } from 'src/shared/repositories/user.repository';
 import { WidgetRepository } from 'src/shared/repositories/widget.repository';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import {
+  fillAdvertisementTemplate,
+  fillNewsletterTemplate,
+} from './widget-template-helpers';
+import { Widget } from 'src/shared/enums/common.interface';
 
 @Injectable()
 export class UserService {
@@ -118,6 +127,31 @@ export class UserService {
     return result.secure_url;
   }
 
+  async editWidgetImage(id: string, userId: string, file: Express.Multer.File) {
+    const widget = await this.userWidgetRepository.find({
+      id: new ObjectId(id),
+    });
+
+    if (widget?.user.id !== userId) {
+      throw new HttpException(
+        {
+          message: 'You do not have permission to edit this data.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (widget.widget.data.image) {
+      await this.cloudinaryService.deleteImage(
+        widget.widget.data.image.publicId,
+      );
+    }
+
+    await this.userWidgetRepository.deleteImage(id);
+
+    return await this.addWidgetImage(id, userId, file);
+  }
+
   async addWidgetProperty(id: ObjectId, userId: ObjectId, property: string) {
     const widget = await this.userWidgetRepository.find({ id });
 
@@ -146,5 +180,37 @@ export class UserService {
     }
 
     return await this.userWidgetRepository.deleteProperty(id, property);
+  }
+
+  async getWidgetScript(id: string, property) {
+    const userWidget = await this.userWidgetRepository.find({
+      id: new ObjectId(id),
+    });
+
+    if (!userWidget?.widget?.properties?.includes(property)) {
+      throw new HttpException(
+        {
+          message: 'You do not have permission to access this data.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const widget = await this.widgetRepository.find({
+      id: userWidget.widget.type.id,
+    });
+
+    let template = widget.script;
+
+    switch (userWidget.widget.type.name) {
+      case Widget.Newsletter:
+        template = fillNewsletterTemplate(userWidget.widget.data, template);
+        break;
+      case Widget.Advertisement:
+        template = fillAdvertisementTemplate(userWidget.widget.data, template);
+        break;
+    }
+
+    return template;
   }
 }

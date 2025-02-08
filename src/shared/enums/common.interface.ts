@@ -12,3 +12,8 @@ export enum UserRole {
   Admin = 1,
   User,
 }
+
+export enum Widget{
+  Advertisement = 'advertisement',
+  Newsletter = "newsletter"
+}

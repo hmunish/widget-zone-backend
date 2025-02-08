@@ -52,6 +52,17 @@ export class UserWidgetRepository {
       .updateOne(query, update);
   }
 
+  async deleteImage(id: string) {
+    const query: Filter<UserWidget> = { _id: new ObjectId(id) };
+    const update: UpdateFilter<UserWidget> = {
+      $unset: { 'widget.data.image': '' },
+    };
+
+    return await this.db
+      .collection<UserWidget>(this.collection)
+      .updateOne(query, update);
+  }
+
   async addProperty(id: ObjectId, property: string) {
     const query: Filter<UserWidget> = { _id: new ObjectId(id) };
     const update: UpdateFilter<UserWidget> = {

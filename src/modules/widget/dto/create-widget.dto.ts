@@ -10,4 +10,8 @@ export class CreateWidgetDto{
     @IsNotEmpty()
     @IsString()
     description: string;
+
+    @IsNotEmpty()
+    @IsString()
+    code: string;
 }
