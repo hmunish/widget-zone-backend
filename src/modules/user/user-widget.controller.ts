@@ -14,6 +14,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Req,
   Res,
   UploadedFile,
@@ -27,7 +28,7 @@ import { CreateUserWidgetDto } from './dto/create-user-widget.dto';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth/jwt.strategy';
 import { RolesGuard } from 'src/shared/guards/jwt-auth/role.guard';
 import { Roles } from 'src/shared/decorators/role.decorator';
-import { UserRole } from 'src/shared/enums/common.interface';
+import { TicketStatus, UserRole } from 'src/shared/enums/common.interface';
 import { ObjectId } from 'mongodb';
 import { EditUserWidgetDto } from './dto/edit-user-widget.dto';
 import { AddUserWidgetPropertyDto } from './dto/add-user-widget-property.dto';
@@ -143,30 +144,6 @@ export class UserWidgetController {
           message:
             (error instanceof HttpException ? error.message : null) ||
             'Failed to edit widget image. Please try again later.',
-        },
-        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.User)
-  @Get('widgets/:type')
-  @HttpCode(HttpStatus.OK)
-  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
-  async listWidget(@Req() req, @Param('type') type: string) {
-    try {
-      const data = await this.service.listWidget(req.user.id, type);
-      return {
-        message: 'Widget list have successfully been fetched.',
-        data,
-      };
-    } catch (error) {
-      throw new HttpException(
-        {
-          message:
-            (error instanceof HttpException ? error.message : null) ||
-            'Failed to fetch widget list. Please try again later.',
         },
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -318,7 +295,11 @@ export class UserWidgetController {
     try {
       await this.service.addWidgetTicket(
         id,
-        { emailId: body.emailId, message: body.message },
+        {
+          fullName: body.fullName,
+          emailId: body.emailId,
+          message: body.message,
+        },
         req.hostname,
       );
       return {
@@ -330,6 +311,54 @@ export class UserWidgetController {
           message:
             (error instanceof HttpException ? error.message : null) ||
             'Failed to add ticket. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
+  @Get('widgets/tickets')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async getWidgetTickets(@Req() req, @Query('status') status?: TicketStatus) {
+    try {
+      const tickets = await this.service.getWidgetTickets(req.user.id, status);
+      return {
+        message: 'Tickets have successfully been fetched.',
+        data: tickets,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to fetch tickets. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
+  @Get('widgets/:type')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async listWidget(@Req() req, @Param('type') type: string) {
+    try {
+      const data = await this.service.listWidget(req.user.id, type);
+      return {
+        message: 'Widget list have successfully been fetched.',
+        data,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to fetch widget list. Please try again later.',
         },
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );

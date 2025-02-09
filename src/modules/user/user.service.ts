@@ -17,7 +17,7 @@ import {
   fillNewsletterTemplate,
   fillTicketManagementTemplate,
 } from './widget-template-helpers';
-import { Widget } from 'src/shared/enums/common.interface';
+import { TicketStatus, Widget } from 'src/shared/enums/common.interface';
 
 @Injectable()
 export class UserService {
@@ -200,7 +200,7 @@ export class UserService {
 
   async addWidgetTicket(
     id: ObjectId,
-    ticket: { emailId: string; message: string },
+    ticket: { fullName: string; emailId: string; message: string },
     property: string,
   ) {
     const widget = await this.userWidgetRepository.find({ id });
@@ -215,6 +215,10 @@ export class UserService {
     }
 
     return await this.userWidgetRepository.addTicket(id, ticket, property);
+  }
+
+  async getWidgetTickets(userId: string, status?: TicketStatus) {
+    return await this.userWidgetRepository.getTickets(userId, status);
   }
 
   async getWidgetScript(id: string, property) {

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Db, Filter, ObjectId, UpdateFilter } from 'mongodb';
 import { UserWidget } from '../interfaces/user-widget.interface';
-import { TicketStatus } from '../enums/common.interface';
+import { TicketStatus, Widget } from '../enums/common.interface';
 
 @Injectable()
 export class UserWidgetRepository {
@@ -98,10 +98,11 @@ export class UserWidgetRepository {
 
   async addTicket(
     id: ObjectId,
-    ticket: { emailId: string; message: string },
+    ticket: { fullName: string; emailId: string; message: string },
     property: string,
   ) {
     const newTicket = {
+      _id: new ObjectId(),
       ...ticket,
       property,
       status: TicketStatus.Pending,
@@ -114,5 +115,24 @@ export class UserWidgetRepository {
     return await this.db
       .collection<UserWidget>(this.collection)
       .updateOne(query, update);
+  }
+
+  async getTickets(userId: string, status?: TicketStatus) {
+    return await this.db
+      .collection(this.collection)
+      .aggregate([
+        {
+          $match: {
+            'user.id': userId,
+            'widget.type.name': Widget.TicketManagement,
+          },
+        },
+        { $unwind: '$widget' },
+        { $match: { 'widget.type.name': Widget.TicketManagement } },
+        { $unwind: '$widget.tickets' },
+        ...(status ? [{ $match: { 'widget.tickets.status': +status } }] : []),
+        { $project: { _id: 0, ticket: '$widget.tickets' } },
+      ])
+      .toArray();
   }
 }

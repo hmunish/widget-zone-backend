@@ -15,4 +15,8 @@ export class AddUserWidgetTicketDto {
   @IsNotEmpty()
   @IsString()
   message: string;
+
+  @IsNotEmpty()
+  @IsString()
+  fullName: string;
 }
