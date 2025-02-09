@@ -3,10 +3,12 @@ import { Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import { Newsletter } from 'src/shared/dto/widgets/newsletter.dto';
 import { Advertisement } from 'src/shared/dto/widgets/advertisement.dto';
+import { TicketManagement } from 'src/shared/dto/widgets/ticket-management.dto';
 
 const TypeToDtoMap = {
   newsletter: Newsletter,
   advertisement: Advertisement,
+  'ticket-management': TicketManagement,
 };
 
 export class WidgetType {
@@ -31,5 +33,5 @@ export class EditUserWidgetDto {
   @Type(
     (options) => TypeToDtoMap[(options.object as EditUserWidgetDto).type.name],
   )
-  data: Newsletter | Advertisement;
+  data: Newsletter | Advertisement | TicketManagement;
 }

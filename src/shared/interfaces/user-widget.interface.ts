@@ -11,6 +11,10 @@ export interface UserWidget {
     };
     data: Newsletter | Advertisement;
     properties?: string[];
+    subscribers?: {
+      emailId: string;
+      property: string;
+    };
   };
 }
 

@@ -13,7 +13,14 @@ export enum UserRole {
   User,
 }
 
-export enum Widget{
+export enum Widget {
   Advertisement = 'advertisement',
-  Newsletter = "newsletter"
+  Newsletter = 'newsletter',
+  TicketManagement = 'ticket-management',
+}
+
+export enum TicketStatus {
+  Pending = 1,
+  Open,
+  Close,
 }

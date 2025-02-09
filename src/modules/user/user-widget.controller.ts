@@ -1,4 +1,5 @@
 import {
+  All,
   BadRequestException,
   Body,
   Controller,
@@ -8,11 +9,13 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  Options,
   Param,
   Patch,
   Post,
   Put,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -32,6 +35,9 @@ import { DeleteUserWidgetPropertyDto } from './dto/delete-user-widget-property.d
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
 import * as multer from 'multer';
 import { Express } from 'express';
+import { AddUserWidgetSubscriberDto } from './dto/add-user-widget-subscriber.dto';
+import { Response } from 'express';
+import { AddUserWidgetTicketDto } from './dto/add-user-widget-ticket.dto';
 @Controller('users')
 export class UserWidgetController {
   constructor(private service: UserService) {}
@@ -274,6 +280,62 @@ export class UserWidgetController {
     }
   }
 
+  @Post('widgets/:id/subscribers')
+  @HttpCode(HttpStatus.CREATED)
+  @Header('Access-Control-Allow-Origin', '*')
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async addWidgetSubscriber(
+    @Req() req,
+    @Param('id') id: ObjectId,
+    @Body() body: AddUserWidgetSubscriberDto,
+  ) {
+    try {
+      await this.service.addWidgetSubscriber(id, body.emailId, req.hostname);
+      return {
+        message: 'Subscriber have successfully been added.',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to add subscriber. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('widgets/:id/tickets')
+  @HttpCode(HttpStatus.CREATED)
+  @Header('Access-Control-Allow-Origin', '*')
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async addWidgetTicket(
+    @Req() req,
+    @Param('id') id: ObjectId,
+    @Body() body: AddUserWidgetTicketDto,
+  ) {
+    try {
+      await this.service.addWidgetTicket(
+        id,
+        { emailId: body.emailId, message: body.message },
+        req.hostname,
+      );
+      return {
+        message: 'Ticket have successfully been added.',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to add ticket. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Get('widgets/:id/script.js')
   @HttpCode(HttpStatus.OK)
   @Header('Content-Type', 'application/javascript')
@@ -281,7 +343,7 @@ export class UserWidgetController {
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
   async getWidgetScript(@Req() req, @Param('id') id: string) {
     try {
-        return await this.service.getWidgetScript(id, req.hostname);
+      return await this.service.getWidgetScript(id, req.hostname);
     } catch (error) {
       throw new HttpException(
         {

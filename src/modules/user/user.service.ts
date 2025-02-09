@@ -15,6 +15,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import {
   fillAdvertisementTemplate,
   fillNewsletterTemplate,
+  fillTicketManagementTemplate,
 } from './widget-template-helpers';
 import { Widget } from 'src/shared/enums/common.interface';
 
@@ -182,6 +183,40 @@ export class UserService {
     return await this.userWidgetRepository.deleteProperty(id, property);
   }
 
+  async addWidgetSubscriber(id: ObjectId, emailId: string, property: string) {
+    const widget = await this.userWidgetRepository.find({ id });
+
+    if (widget?.properties?.includes(property)) {
+      throw new HttpException(
+        {
+          message: 'You do not have permission to access this data.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return await this.userWidgetRepository.addSubscriber(id, emailId, property);
+  }
+
+  async addWidgetTicket(
+    id: ObjectId,
+    ticket: { emailId: string; message: string },
+    property: string,
+  ) {
+    const widget = await this.userWidgetRepository.find({ id });
+
+    if (widget?.properties?.includes(property)) {
+      throw new HttpException(
+        {
+          message: 'You do not have permission to access this data.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return await this.userWidgetRepository.addTicket(id, ticket, property);
+  }
+
   async getWidgetScript(id: string, property) {
     const userWidget = await this.userWidgetRepository.find({
       id: new ObjectId(id),
@@ -204,10 +239,21 @@ export class UserService {
 
     switch (userWidget.widget.type.name) {
       case Widget.Newsletter:
-        template = fillNewsletterTemplate(userWidget.widget.data, template);
+        template = fillNewsletterTemplate(
+          userWidget.widget.data,
+          template,
+          this.configService.get('app.url'),
+        );
         break;
       case Widget.Advertisement:
         template = fillAdvertisementTemplate(userWidget.widget.data, template);
+        break;
+      case Widget.TicketManagement:
+        template = fillTicketManagementTemplate(
+          userWidget.widget.data,
+          template,
+          this.configService.get('app.url'),
+        );
         break;
     }
 

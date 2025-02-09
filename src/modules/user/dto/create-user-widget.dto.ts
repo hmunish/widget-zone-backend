@@ -1,12 +1,14 @@
-import { IsNotEmpty, ValidateNested, IsIn } from "class-validator";
-import { Type } from "class-transformer";
-import { ObjectId } from "mongodb";
-import { Newsletter } from "src/shared/dto/widgets/newsletter.dto";
-import { Advertisement } from "src/shared/dto/widgets/advertisement.dto";
+import { IsNotEmpty, ValidateNested, IsIn } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ObjectId } from 'mongodb';
+import { Newsletter } from 'src/shared/dto/widgets/newsletter.dto';
+import { Advertisement } from 'src/shared/dto/widgets/advertisement.dto';
+import { TicketManagement } from 'src/shared/dto/widgets/ticket-management.dto';
 
 const TypeToDtoMap = {
   newsletter: Newsletter,
   advertisement: Advertisement,
+  'ticket-management': TicketManagement,
 };
 
 export class WidgetType {
@@ -15,7 +17,7 @@ export class WidgetType {
 
   @IsNotEmpty()
   @IsIn(Object.keys(TypeToDtoMap), {
-    message: `Name must be one of: ${Object.keys(TypeToDtoMap).join(", ")}`,
+    message: `Name must be one of: ${Object.keys(TypeToDtoMap).join(', ')}`,
   })
   name: keyof typeof TypeToDtoMap;
 }
@@ -28,6 +30,9 @@ export class CreateUserWidgetDto {
 
   @IsNotEmpty()
   @ValidateNested()
-  @Type((options) => TypeToDtoMap[(options.object as CreateUserWidgetDto).type.name])
-  data: Newsletter | Advertisement;
+  @Type(
+    (options) =>
+      TypeToDtoMap[(options.object as CreateUserWidgetDto).type.name],
+  )
+  data: Newsletter | Advertisement | TicketManagement;
 }

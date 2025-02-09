@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Db, Filter, ObjectId, UpdateFilter } from 'mongodb';
 import { UserWidget } from '../interfaces/user-widget.interface';
+import { TicketStatus } from '../enums/common.interface';
 
 @Injectable()
 export class UserWidgetRepository {
@@ -18,7 +19,6 @@ export class UserWidgetRepository {
   }
 
   async create(userWidget: UserWidget) {
-    userWidget.widget.properties = [];
     return await this.db.collection(this.collection).insertOne(userWidget);
   }
 
@@ -78,6 +78,37 @@ export class UserWidgetRepository {
     const query: Filter<UserWidget> = { _id: new ObjectId(id) };
     const update: UpdateFilter<UserWidget> = {
       $pull: { 'widget.properties': property }, // Removes the property if it exists
+    };
+
+    return await this.db
+      .collection<UserWidget>(this.collection)
+      .updateOne(query, update);
+  }
+
+  async addSubscriber(id: ObjectId, emailId: string, property: string) {
+    const query: Filter<UserWidget> = { _id: new ObjectId(id) };
+    const update: UpdateFilter<UserWidget> = {
+      $addToSet: { 'widget.subscribers': { emailId, property } },
+    };
+
+    return await this.db
+      .collection<UserWidget>(this.collection)
+      .updateOne(query, update);
+  }
+
+  async addTicket(
+    id: ObjectId,
+    ticket: { emailId: string; message: string },
+    property: string,
+  ) {
+    const newTicket = {
+      ...ticket,
+      property,
+      status: TicketStatus.Pending,
+    };
+    const query: Filter<UserWidget> = { _id: new ObjectId(id) };
+    const update: UpdateFilter<UserWidget> = {
+      $addToSet: { 'widget.tickets': newTicket },
     };
 
     return await this.db
