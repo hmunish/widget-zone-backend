@@ -131,8 +131,31 @@ export class UserWidgetRepository {
         { $match: { 'widget.type.name': Widget.TicketManagement } },
         { $unwind: '$widget.tickets' },
         ...(status ? [{ $match: { 'widget.tickets.status': +status } }] : []),
-        { $project: { _id: 0, ticket: '$widget.tickets' } },
+        { $project: { _id: 1, ticket: '$widget.tickets' } },
       ])
       .toArray();
+  }
+
+  async updateTicketStatus(
+    widgetId: string,
+    ticketId: string,
+    status: TicketStatus,
+  ) {
+    const query: Filter<Document> = {
+      _id: new ObjectId(widgetId),
+      'widget.tickets._id': new ObjectId(ticketId), // Ensure correct ObjectId conversion
+    };
+
+    const update = {
+      $set: { 'widget.tickets.$.status': status }, // Correctly updates matched ticket
+    };
+
+    const result = await this.db
+      .collection(this.collection)
+      .updateOne(query, update);
+
+    return result.modifiedCount > 0
+      ? { message: 'Ticket status updated successfully' }
+      : { message: 'Ticket not found or already updated' };
   }
 }

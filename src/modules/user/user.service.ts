@@ -221,6 +221,32 @@ export class UserService {
     return await this.userWidgetRepository.getTickets(userId, status);
   }
 
+  async updateWidgetTicketStatus(
+    userId: string,
+    id: string,
+    ticketId: string,
+    status: TicketStatus,
+  ) {
+    const widget = await this.userWidgetRepository.find({
+      id: new ObjectId(id),
+    });
+
+    if (widget?.user.id !== userId) {
+      throw new HttpException(
+        {
+          message: 'You do not have permission to edit this data.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return await this.userWidgetRepository.updateTicketStatus(
+      id,
+      ticketId,
+      status,
+    );
+  }
+
   async getWidgetScript(id: string, property) {
     const userWidget = await this.userWidgetRepository.find({
       id: new ObjectId(id),

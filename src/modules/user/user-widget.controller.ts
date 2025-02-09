@@ -9,14 +9,12 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
-  Options,
   Param,
   Patch,
   Post,
   Put,
   Query,
   Req,
-  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -37,8 +35,8 @@ import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/fi
 import * as multer from 'multer';
 import { Express } from 'express';
 import { AddUserWidgetSubscriberDto } from './dto/add-user-widget-subscriber.dto';
-import { Response } from 'express';
 import { AddUserWidgetTicketDto } from './dto/add-user-widget-ticket.dto';
+import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 @Controller('users')
 export class UserWidgetController {
   constructor(private service: UserService) {}
@@ -335,6 +333,39 @@ export class UserWidgetController {
           message:
             (error instanceof HttpException ? error.message : null) ||
             'Failed to fetch tickets. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
+  @Patch('widgets/:id/tickets/:ticketId')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async updateTicketStatus(
+    @Req() req,
+    @Param('id') id: string,
+    @Param('ticketId') ticketId: string,
+    @Body() body: UpdateTicketStatusDto,
+  ) {
+    try {
+      await this.service.updateWidgetTicketStatus(
+        req.user.id,
+        id,
+        ticketId,
+        body.status,
+      );
+      return {
+        message: 'Ticket status have successfully been updated.',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to update ticket status. Please try again later.',
         },
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );
