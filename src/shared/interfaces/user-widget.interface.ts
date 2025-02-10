@@ -14,6 +14,7 @@ export interface UserWidget {
     subscribers?: {
       emailId: string;
       property: string;
+      subscribedAt: string;
     };
   };
 }

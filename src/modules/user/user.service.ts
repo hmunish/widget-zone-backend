@@ -247,6 +247,10 @@ export class UserService {
     );
   }
 
+  async getWidgetSubscribers(userId: string, status?: TicketStatus) {
+    return await this.userWidgetRepository.getSubscribers(userId);
+  }
+
   async getWidgetScript(id: string, property) {
     const userWidget = await this.userWidgetRepository.find({
       id: new ObjectId(id),

@@ -88,7 +88,9 @@ export class UserWidgetRepository {
   async addSubscriber(id: ObjectId, emailId: string, property: string) {
     const query: Filter<UserWidget> = { _id: new ObjectId(id) };
     const update: UpdateFilter<UserWidget> = {
-      $addToSet: { 'widget.subscribers': { emailId, property } },
+      $addToSet: {
+        'widget.subscribers': { emailId, property, subscribedAt: new Date() },
+      },
     };
 
     return await this.db
@@ -132,6 +134,24 @@ export class UserWidgetRepository {
         { $unwind: '$widget.tickets' },
         ...(status ? [{ $match: { 'widget.tickets.status': +status } }] : []),
         { $project: { _id: 1, ticket: '$widget.tickets' } },
+      ])
+      .toArray();
+  }
+
+  async getSubscribers(userId: string) {
+    return await this.db
+      .collection(this.collection)
+      .aggregate([
+        {
+          $match: {
+            'user.id': userId,
+            'widget.type.name': 'newsletter',
+          },
+        },
+        { $unwind: '$widget' },
+        { $match: { 'widget.type.name': 'newsletter' } },
+        { $unwind: '$widget.subscribers' },
+        { $project: { _id: 1, subscriber: '$widget.subscribers' } },
       ])
       .toArray();
   }

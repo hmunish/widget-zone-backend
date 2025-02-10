@@ -374,6 +374,30 @@ export class UserWidgetController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.User)
+  @Get('widgets/subscribers')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async getWidgetSubscribers(@Req() req) {
+    try {
+      const subscribers = await this.service.getWidgetSubscribers(req.user.id);
+      return {
+        message: 'Subscribers have successfully been fetched.',
+        data: subscribers,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to fetch subscribers. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
   @Get('widgets/:type')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
