@@ -8,7 +8,7 @@ async function bootstrap() {
   app.enableCors({
     origin: configService.get<string[]>('allowOrigins'),
     exposedHeaders: configService.get<string[]>('exposeHeaders'),
-    preflightContinue: false,
+    preflightContinue: true,
   });
   await app.listen(process.env.PORT ?? 3000);
 }
