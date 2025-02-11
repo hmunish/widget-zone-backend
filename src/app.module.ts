@@ -28,6 +28,8 @@ import { OptionsRequestMiddleware } from './shared/middlewares/options-request.m
   controllers: [AppController],
   providers: [AppService, JwtStrategy, UserRepository],
 })
-export class AppModule  {
-  
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(OptionsRequestMiddleware).forRoutes('*');
+  }
 }
