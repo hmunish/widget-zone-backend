@@ -108,6 +108,7 @@ export class UserWidgetRepository {
       ...ticket,
       property,
       status: TicketStatus.Pending,
+      createdAt: new Date(),
     };
     const query: Filter<UserWidget> = { _id: new ObjectId(id) };
     const update: UpdateFilter<UserWidget> = {
@@ -119,40 +120,120 @@ export class UserWidgetRepository {
       .updateOne(query, update);
   }
 
-  async getTickets(userId: string, status?: TicketStatus) {
-    return await this.db
-      .collection(this.collection)
-      .aggregate([
+  async getTickets(
+    userId: string,
+    status?: TicketStatus,
+    countByMonth?: boolean,
+  ) {
+    const matchStage: any = {
+      'user.id': userId,
+      'widget.type.name': Widget.TicketManagement,
+    };
+
+    const pipeline: any[] = [
+      { $match: matchStage },
+      { $unwind: '$widget.tickets' }, // Unwind tickets first
+    ];
+
+    if (status !== undefined) {
+      pipeline.push({ $match: { 'widget.tickets.status': +status } });
+    }
+
+    if (countByMonth) {
+      const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+      const endOfYear = new Date(new Date().getFullYear() + 1, 0, 1);
+
+      pipeline.push(
         {
           $match: {
-            'user.id': userId,
-            'widget.type.name': Widget.TicketManagement,
+            'widget.tickets.createdAt': {
+              $gte: startOfYear,
+              $lt: endOfYear,
+            },
           },
         },
-        { $unwind: '$widget' },
-        { $match: { 'widget.type.name': Widget.TicketManagement } },
-        { $unwind: '$widget.tickets' },
-        ...(status ? [{ $match: { 'widget.tickets.status': +status } }] : []),
-        { $project: { _id: 1, ticket: '$widget.tickets' } },
-      ])
-      .toArray();
+        {
+          $group: {
+            _id: { month: { $month: '$widget.tickets.createdAt' } }, // Extract month (1-12)
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { '_id.month': 1 } },
+      );
+
+      const results = await this.db
+        .collection(this.collection)
+        .aggregate(pipeline)
+        .toArray();
+
+      const monthlyCounts: number[] = new Array(12).fill(0);
+
+      results.forEach(({ _id, count }) => {
+        monthlyCounts[_id.month - 1] = count;
+      });
+
+      return monthlyCounts;
+    } else {
+      pipeline.push({ $project: { _id: 1, ticket: '$widget.tickets' } });
+      return await this.db
+        .collection(this.collection)
+        .aggregate(pipeline)
+        .toArray();
+    }
   }
 
-  async getSubscribers(userId: string) {
-    return await this.db
-      .collection(this.collection)
-      .aggregate([
+  async getSubscribers(userId: string, countByMonth?: boolean) {
+    const pipeline: any[] = [
+      {
+        $match: {
+          'user.id': userId,
+          'widget.type.name': 'newsletter',
+        },
+      },
+      { $unwind: '$widget' },
+      { $match: { 'widget.type.name': 'newsletter' } },
+      { $unwind: '$widget.subscribers' },
+    ];
+
+    if (countByMonth) {
+      pipeline.push(
         {
-          $match: {
-            'user.id': userId,
-            'widget.type.name': 'newsletter',
+          $group: {
+            _id: { $month: { $toDate: '$widget.subscribers.subscribedAt' } },
+            count: { $sum: 1 },
           },
         },
-        { $unwind: '$widget' },
-        { $match: { 'widget.type.name': 'newsletter' } },
-        { $unwind: '$widget.subscribers' },
-        { $project: { _id: 1, subscriber: '$widget.subscribers' } },
-      ])
+        {
+          $project: {
+            _id: 0,
+            month: '$_id',
+            count: 1,
+          },
+        },
+        { $sort: { month: 1 } },
+      );
+
+      const result = await this.db
+        .collection(this.collection)
+        .aggregate(pipeline)
+        .toArray();
+
+      const countsArray = Array(12).fill(0);
+
+      result.forEach(({ month, count }) => {
+        countsArray[month - 1] = count;
+      });
+
+      return countsArray;
+    } else {
+      pipeline.push({
+        $project: { _id: 1, subscriber: '$widget.subscribers' },
+      });
+    }
+
+    return await this.db
+      .collection(this.collection)
+      .aggregate(pipeline)
       .toArray();
   }
 
@@ -163,11 +244,11 @@ export class UserWidgetRepository {
   ) {
     const query: Filter<Document> = {
       _id: new ObjectId(widgetId),
-      'widget.tickets._id': new ObjectId(ticketId), // Ensure correct ObjectId conversion
+      'widget.tickets._id': new ObjectId(ticketId),
     };
 
     const update = {
-      $set: { 'widget.tickets.$.status': status }, // Correctly updates matched ticket
+      $set: { 'widget.tickets.$.status': status },
     };
 
     const result = await this.db

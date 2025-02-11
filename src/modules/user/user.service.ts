@@ -217,8 +217,16 @@ export class UserService {
     return await this.userWidgetRepository.addTicket(id, ticket, property);
   }
 
-  async getWidgetTickets(userId: string, status?: TicketStatus) {
-    return await this.userWidgetRepository.getTickets(userId, status);
+  async getWidgetTickets(
+    userId: string,
+    status?: TicketStatus,
+    countByMonth = false,
+  ) {
+    return await this.userWidgetRepository.getTickets(
+      userId,
+      status,
+      countByMonth,
+    );
   }
 
   async updateWidgetTicketStatus(
@@ -247,8 +255,8 @@ export class UserService {
     );
   }
 
-  async getWidgetSubscribers(userId: string, status?: TicketStatus) {
-    return await this.userWidgetRepository.getSubscribers(userId);
+  async getWidgetSubscribers(userId: string, groupByMonth?: boolean) {
+    return await this.userWidgetRepository.getSubscribers(userId, groupByMonth);
   }
 
   async getWidgetScript(id: string, property) {

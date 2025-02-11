@@ -320,9 +320,17 @@ export class UserWidgetController {
   @Get('widgets/tickets')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
-  async getWidgetTickets(@Req() req, @Query('status') status?: TicketStatus) {
+  async getWidgetTickets(
+    @Req() req,
+    @Query('status') status?: TicketStatus,
+    @Query('countByMonth') countByMonth?: boolean,
+  ) {
     try {
-      const tickets = await this.service.getWidgetTickets(req.user.id, status);
+      const tickets = await this.service.getWidgetTickets(
+        req.user.id,
+        status,
+        countByMonth ? true : false,
+      );
       return {
         message: 'Tickets have successfully been fetched.',
         data: tickets,
@@ -377,9 +385,15 @@ export class UserWidgetController {
   @Get('widgets/subscribers')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
-  async getWidgetSubscribers(@Req() req) {
+  async getWidgetSubscribers(
+    @Req() req,
+    @Query('countByMonth') groupByMonth?: Boolean,
+  ) {
     try {
-      const subscribers = await this.service.getWidgetSubscribers(req.user.id);
+      const subscribers = await this.service.getWidgetSubscribers(
+        req.user.id,
+        groupByMonth ? true : false,
+      );
       return {
         message: 'Subscribers have successfully been fetched.',
         data: subscribers,
