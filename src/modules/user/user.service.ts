@@ -18,6 +18,7 @@ import {
   fillTicketManagementTemplate,
 } from './widget-template-helpers';
 import { TicketStatus, Widget } from 'src/shared/enums/common.interface';
+import { User } from 'src/shared/interfaces/user.interface';
 
 @Injectable()
 export class UserService {
@@ -29,6 +30,17 @@ export class UserService {
     private userWidgetRepository: UserWidgetRepository,
     private cloudinaryService: CloudinaryService,
   ) {}
+
+  async getProfile(id: string) {
+    const user = await this.userRepository.find({ id });
+    delete user['password'];
+    return user;
+  }
+
+  async updateProfile(id: string, user: Partial<User>) {
+    await this.userRepository.update(id, user);
+  }
+
   verifyJwToken(token: string) {
     try {
       return this.jwtService.verify(token, {

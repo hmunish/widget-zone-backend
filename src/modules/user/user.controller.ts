@@ -33,6 +33,7 @@ import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/fi
 import * as multer from 'multer';
 import { Express } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 @Controller('users')
 export class UserController {
   constructor(
@@ -58,6 +59,50 @@ export class UserController {
       throw new HttpException(
         {
           url: redirectUrl,
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async getProfile(@Req() req) {
+    try {
+      const user = await this.service.getProfile(req.user.id);
+      return { user, message: 'User profile have successfully been fetched.' };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to fetch user profile. Please try again later.',
+        },
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.User)
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  async updateProfile(@Req() req, @Body() body: UpdateUserProfileDto) {
+    try {
+      await this.service.updateProfile(req.user.id, body);
+      return {
+        message: 'User profile have successfully been updated.',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message:
+            (error instanceof HttpException ? error.message : null) ||
+            'Failed to fetch user profile. Please try again later.',
         },
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );
