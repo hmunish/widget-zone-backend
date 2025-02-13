@@ -11,6 +11,7 @@ import {
   Patch,
   Post,
   Put,
+  Redirect,
   Req,
   UploadedFile,
   UseGuards,
@@ -31,25 +32,32 @@ import { DeleteUserWidgetPropertyDto } from './dto/delete-user-widget-property.d
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
 import * as multer from 'multer';
 import { Express } from 'express';
+import { ConfigService } from '@nestjs/config';
 @Controller('users')
 export class UserController {
-  constructor(private service: UserService) {}
+  constructor(
+    private service: UserService,
+    private configService: ConfigService,
+  ) {}
 
   @Get('verify/:verificationId')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
+  @Redirect()
   async verifyUser(@Param('verificationId') verificationId: string) {
     try {
       await this.service.verifyUser(verificationId);
       return {
-        message: 'User account has been successfully verified.',
+        url: `${this.configService.get('web.url')}/signin?message=User account has been successfully verified.`,
       };
     } catch (error) {
+      const redirectUrl = `${this.configService.get('web.url')}/signin?message=${
+        (error instanceof HttpException ? error.message : null) ||
+        'Failed to verify user account. Please try again later.'
+      }`;
       throw new HttpException(
         {
-          message:
-            (error instanceof HttpException ? error.message : null) ||
-            'Failed to verify user account. Please try again later.',
+          url: redirectUrl,
         },
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );
