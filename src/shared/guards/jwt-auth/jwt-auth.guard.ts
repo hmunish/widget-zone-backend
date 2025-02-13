@@ -33,9 +33,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    // if (findUser.status === UserStatus.UnVerified) {
-    //   throw new ForbiddenException();
-    // }
+    if (findUser.status === UserStatus.UnVerified) {
+      throw new ForbiddenException();
+    }
 
     return { ...payload.user };
   }

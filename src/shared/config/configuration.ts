@@ -2,6 +2,9 @@ export default () => ({
   app: {
     url: process.env.APP_URL,
   },
+  web: {
+    url: process.env.WEB_URL,
+  },
   database: {
     url: process.env.DATABASE_URL,
     name: process.env.DATABASE_NAME,

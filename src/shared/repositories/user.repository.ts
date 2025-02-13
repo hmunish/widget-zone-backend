@@ -37,7 +37,18 @@ export class UserRepository {
     user.password = await bcrypt.hash(user.password, salt);
     user.status = UserStatus.UnVerified;
     user.roles = [UserRole.User];
+    delete user['confirmPassword'];
     return await this.db.collection(this.collection).insertOne(user);
+  }
+
+  async update(id: string, user: Partial<User>) {
+    if (user.password) {
+      const salt = await bcrypt.genSalt();
+      user.password = await bcrypt.hash(user.password, salt);
+    }
+    return await this.db
+      .collection(this.collection)
+      .findOneAndUpdate({ _id: new ObjectId(id) }, { $set: user });
   }
 
   async verifyUser(userId: string) {

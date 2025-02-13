@@ -20,7 +20,7 @@ export class EmailService {
 
   async sendUserVerificationLink(emailId: string, verificationId: string) {
     try {
-      const activationLink = `${this.configService.get('app.url')}/user/verify/${verificationId}`;
+      const activationLink = `${this.configService.get('app.url')}/users/verify/${verificationId}`;
 
       let emailTemplate = userVerificationTemplate;
 
