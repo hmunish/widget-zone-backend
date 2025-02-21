@@ -265,7 +265,7 @@ export class UserWidgetController {
     @Body() body: AddUserWidgetSubscriberDto,
   ) {
     try {
-      await this.service.addWidgetSubscriber(id, body.emailId, new URL(req.headers?.referer)?.hostname);
+      await this.service.addWidgetSubscriber(id, body.emailId, req.hostname);
       return {
         message: 'Subscriber have successfully been added.',
       };
@@ -298,7 +298,7 @@ export class UserWidgetController {
           emailId: body.emailId,
           message: body.message,
         },
-        new URL(req.headers?.referer)?.hostname,
+        req.hostname,
       );
       return {
         message: 'Ticket have successfully been added.',
@@ -441,7 +441,10 @@ export class UserWidgetController {
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
   async getWidgetScript(@Req() req, @Param('id') id: string) {
     try {
-      return await this.service.getWidgetScript(id, new URL(req.headers?.referer)?.hostname);
+      return await this.service.getWidgetScript(
+        id,
+        new URL(req.headers?.referer)?.hostname,
+      );
     } catch (error) {
       throw new HttpException(
         {
