@@ -441,8 +441,7 @@ export class UserWidgetController {
   @UsePipes(new ValidationPipe({ stopAtFirstError: true }))
   async getWidgetScript(@Req() req, @Param('id') id: string) {
     try {
-      console.log(req.headers?.referer)
-      console.log(req.headers?.origin)
+      console.log(new URL(req.headers?.referer))
       return req.headers?.origin;
       return await this.service.getWidgetScript(id, req.hostname);
     } catch (error) {
