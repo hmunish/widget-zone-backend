@@ -248,11 +248,15 @@ export class UserWidgetRepository {
     };
 
     const update = {
-      $set: { 'widget.tickets.status': status },
+      $set: { 'widget.tickets.$.status': status },
     };
 
-    return await this.db
+    const result = await this.db
       .collection(this.collection)
       .updateOne(query, update);
+
+    return result.modifiedCount > 0
+      ? { message: 'Ticket status updated successfully' }
+      : { message: 'Ticket not found or already updated' };
   }
 }
