@@ -146,6 +146,13 @@ export class UserWidgetRepository {
       pipeline.push(
         { $unwind: '$widget.tickets' },
         {
+          $addFields: {
+            'widget.tickets.createdAt': {
+              $dateFromString: { dateString: '$widget.tickets.createdAt' }
+            }
+          }
+        },
+        {
           $match: {
             'widget.tickets.createdAt': {
               $gte: startOfYear,
