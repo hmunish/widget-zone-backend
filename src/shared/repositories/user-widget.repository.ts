@@ -112,7 +112,7 @@ export class UserWidgetRepository {
     };
     const query: Filter<UserWidget> = { _id: new ObjectId(id) };
     const update: UpdateFilter<UserWidget> = {
-      $addToSet: { 'widget.tickets': newTicket },
+      $addToSet: { 'widget.tickets': {...newTicket, _id: new ObjectId(newTicket._id)} },
     };
 
     return await this.db
@@ -132,7 +132,7 @@ export class UserWidgetRepository {
 
     const pipeline: any[] = [
       { $match: matchStage },
-      { $unwind: '$widget.tickets' }, // Unwind tickets first
+      { $unwind: '$widget.tickets' },
     ];
 
     if (status !== undefined) {
@@ -144,6 +144,7 @@ export class UserWidgetRepository {
       const endOfYear = new Date(new Date().getFullYear() + 1, 0, 1);
 
       pipeline.push(
+        { $unwind: '$widget.tickets' },
         {
           $match: {
             'widget.tickets.createdAt': {
@@ -154,7 +155,7 @@ export class UserWidgetRepository {
         },
         {
           $group: {
-            _id: { month: { $month: '$widget.tickets.createdAt' } }, // Extract month (1-12)
+            _id: { month: { $month: '$widget.tickets.createdAt' } },
             count: { $sum: 1 },
           },
         },
