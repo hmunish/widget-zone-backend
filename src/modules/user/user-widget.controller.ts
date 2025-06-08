@@ -266,10 +266,7 @@ export class UserWidgetController {
     @Body() body: AddUserWidgetSubscriberDto,
   ) {
     try {
-      return {
-        req: req.headers
-      }
-      await this.service.addWidgetSubscriber(id, body.emailId, new URL(req.headers?.referer)?.hostname);
+      await this.service.addWidgetSubscriber(id, body.emailId, req.headers.origin);
       return {
         message: 'Subscriber have successfully been added.',
       };
