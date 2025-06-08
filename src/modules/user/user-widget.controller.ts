@@ -337,7 +337,6 @@ export class UserWidgetController {
         data: tickets,
       };
     } catch (error) {
-      console.log(error, '////////////////');
       throw new HttpException(
         {
           message:

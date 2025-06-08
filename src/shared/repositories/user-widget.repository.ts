@@ -146,13 +146,6 @@ export class UserWidgetRepository {
       pipeline.push(
         { $unwind: '$widget.tickets' },
         {
-          $addFields: {
-            'widget.tickets.createdAt': {
-              $dateFromString: { dateString: '$widget.tickets.createdAt' }
-            }
-          }
-        },
-        {
           $match: {
             'widget.tickets.createdAt': {
               $gte: startOfYear,
@@ -181,7 +174,8 @@ export class UserWidgetRepository {
       });
 
       return monthlyCounts;
-    } else {
+    }
+    else {
       pipeline.push({ $project: { _id: 1, ticket: '$widget.tickets' } });
       return await this.db
         .collection(this.collection)
