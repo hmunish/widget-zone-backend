@@ -266,8 +266,7 @@ export class UserWidgetController {
     @Body() body: AddUserWidgetSubscriberDto,
   ) {
     try {
-      console.log('///////////////////');
-      return false;
+      throw new HttpException({message: 'non'}, 404);
       return {
         req: req.headers
       }
