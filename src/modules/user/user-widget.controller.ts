@@ -299,7 +299,7 @@ export class UserWidgetController {
           emailId: body.emailId,
           message: body.message,
         },
-        new URL(req.headers?.referer)?.hostname,
+        new req.headers.origin,
       );
       return {
         message: 'Ticket have successfully been added.',
@@ -337,6 +337,7 @@ export class UserWidgetController {
         data: tickets,
       };
     } catch (error) {
+      console.log(error, '////////////////');
       throw new HttpException(
         {
           message:
