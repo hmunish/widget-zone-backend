@@ -37,6 +37,7 @@ import { Express } from 'express';
 import { AddUserWidgetSubscriberDto } from './dto/add-user-widget-subscriber.dto';
 import { AddUserWidgetTicketDto } from './dto/add-user-widget-ticket.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
+import { abort } from 'process';
 @Controller('users')
 export class UserWidgetController {
   constructor(private service: UserService) {}
@@ -265,6 +266,8 @@ export class UserWidgetController {
     @Body() body: AddUserWidgetSubscriberDto,
   ) {
     try {
+      console.log('///////////////////');
+      return false;
       return {
         req: req.headers
       }
